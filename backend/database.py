@@ -7,12 +7,18 @@ from backend.entities import (
     ChatInDB,
     ChatUpdate,
     MessageInDB,
+    ChatWithMessagesInDB,
 )
 
 with open("backend/fake_db.json", "r") as f:
     DB = json.load(f)
 
 class EntityNotFoundException(Exception):
+    def __init__(self, *, entity_name: str, entity_id: str):
+        self.entity_name = entity_name
+        self.entity_id = entity_id
+
+class DuplicateEntityException(Exception):
     def __init__(self, *, entity_name: str, entity_id: str):
         self.entity_name = entity_name
         self.entity_id = entity_id
@@ -33,6 +39,9 @@ def create_user(user_create: UserCreate) -> UserInDB:
     :return: the newly created user
     """
 
+    if(user_create.id in DB["users"]):
+        raise DuplicateEntityException(entity_name="User", entity_id=user_create.id)
+
     user = UserInDB(
         created_at=datetime.today(),
         **user_create.model_dump(),
@@ -47,7 +56,10 @@ def get_user_by_id(user_id: str) -> UserInDB:
     :param user_id: id of the user to be retrieved
     :return: the retrieved user
     """
-    pass
+    if(user_id in DB["users"]):
+        return UserInDB(**DB["users"][user_id])
+    
+    raise EntityNotFoundException(entity_name="User", entity_id=user_id)
 
 def get_users_chats(user_id: str) -> list[ChatInDB]:
     """
@@ -56,7 +68,11 @@ def get_users_chats(user_id: str) -> list[ChatInDB]:
     :param user_id: id of the user
     :return: ordered list of chats
     """
-    pass
+    if(user_id not in DB["users"]):
+        raise EntityNotFoundException(entity_name="User", entity_id=user_id)
+
+    chats = get_all_chats()
+    return [chat for chat in chats if chat.user_ids.__contains__(user_id)]
 
 def get_all_chats() -> list[ChatInDB]:
     """
@@ -73,7 +89,22 @@ def get_chat_by_id(chat_id: str) -> ChatInDB:
     :param chat_id: id of the chat to be retrieved
     :return: the retrieved chat
     """
-    pass
+    if(chat_id in DB["chats"]):
+        return ChatInDB(**DB["chats"][chat_id])
+    
+    raise EntityNotFoundException(entity_name="Chat", entity_id=chat_id)
+
+def get_chat_with_messages_by_id(chat_id: str) -> ChatWithMessagesInDB:
+    """
+    Retrieve a chat with its messages from the database.
+
+    :param chat_id: id of the chat to be retrieved
+    :return: the retrieved chat
+    """
+    if(chat_id in DB["chats"]):
+        return ChatWithMessagesInDB(**DB["chats"][chat_id])
+    
+    raise EntityNotFoundException(entity_name="Chat", entity_id=chat_id)
 
 def update_chat(chat_id: str, chat_update: ChatUpdate) -> ChatInDB:
     """
@@ -83,7 +114,14 @@ def update_chat(chat_id: str, chat_update: ChatUpdate) -> ChatInDB:
     :param chat_update: attributes to be updated on the animal
     :return: the updated chat
     """
-    pass
+    chat = get_chat_by_id(chat_id)
+
+    for attr, value, in chat_update.model_dump(exclude_none=True).items():
+        setattr(chat, attr, value)
+    
+    DB["chats"][chat.id] = chat.model_dump()
+
+    return chat
 
 def delete_chat(chat_id: str):
     """
@@ -92,7 +130,8 @@ def delete_chat(chat_id: str):
     :param chat_id: the id of the chat to be deleted
     :raises EntityNotFoundException: if no such chat exists
     """
-    pass
+    chat = get_chat_by_id(chat_id)
+    del DB["chats"][chat.id]
 
 def get_chat_messages(chat_id: str) -> list[MessageInDB]:
     """
@@ -101,7 +140,7 @@ def get_chat_messages(chat_id: str) -> list[MessageInDB]:
     :param chat_id: id of the chat
     :return: ordered list of chat messages
     """
-    pass
+    return [message_data for message_data in get_chat_with_messages_by_id(chat_id).messages]
 
 def get_chat_users(chat_id: str) -> list[UserInDB]:
     """
@@ -110,4 +149,6 @@ def get_chat_users(chat_id: str) -> list[UserInDB]:
     :param chat_id: id of the chat
     :return: ordered list of chat users
     """
-    pass
+    chat = get_chat_by_id(chat_id)
+    all_users = get_all_users()
+    return [user for user in all_users if chat.user_ids.__contains__(user.id)]

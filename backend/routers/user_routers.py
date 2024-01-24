@@ -4,7 +4,8 @@ from backend.entities import (
     UserCollection, 
     ChatCollection,
     UserInDB,
-    UserCreate
+    UserCreate,
+    UserResponse,
 )
 
 users_router = APIRouter(prefix="/users", tags=["Users"])
@@ -19,17 +20,23 @@ def get_users():
         users=sorted(users, key=lambda user: user.id),
     )
 
-@users_router.post("", response_model=UserInDB)
+@users_router.post("", response_model=UserResponse)
 def create_user(user_create: UserCreate):
     """Adds a new user."""
-    return db.create_user(user_create)
+    return UserResponse(user=db.create_user(user_create))
 
-@users_router.get("/{user_id}", response_model=UserInDB)
-def get_user_by_id(user_id: str):
+@users_router.get("/{user_id}", response_model=UserResponse,
+                  description="Get a user for a given user id.")
+def get_user(user_id: str):
     """Get a user by id."""
-    pass
+    return UserResponse(user=db.get_user_by_id(user_id))
 
 @users_router.get("/{user_id}/chats", response_model=ChatCollection)
-def get_users_chats():
+def get_users_chats(user_id: str):
     """Gets all chats from a user by user id."""
-    pass
+    chats = db.get_users_chats(user_id)
+
+    return ChatCollection(
+        meta={"count": len(chats)},
+        chats=sorted(chats, key=lambda chat: chat.id),
+    )

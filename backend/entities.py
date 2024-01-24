@@ -10,6 +10,26 @@ class UserCreate(BaseModel):
     """Represents parameters for adding a new user to the system."""
     id: str
 
+class UserResponse(BaseModel):
+    """Represents a response for a user."""
+    user: UserInDB
+
+class MessageInDB(BaseModel):
+    """Represents a Message in the database."""
+    id: str
+    user_id: str
+    text: str
+    created_at: datetime
+
+class ChatWithMessagesInDB(BaseModel):
+    """Represents a chat with its messages in the database."""
+    id: str
+    name: str
+    user_ids: list[str]
+    messages: list[MessageInDB]
+    owner_id: str
+    created_at: datetime
+
 class ChatInDB(BaseModel):
     """Represents a chat in the database."""
     id: str
@@ -22,12 +42,9 @@ class ChatUpdate(BaseModel):
     """Represents parameters for updating a chat in the system."""
     name: str = None
 
-class MessageInDB(BaseModel):
-    """Represents a Message in the database."""
-    id: str
-    user_id: str
-    text: str
-    created_at: datetime
+class ChatResponse(BaseModel):
+    """Represents a response for a chat."""
+    chat: ChatInDB
 
 class Metadata(BaseModel):
     """Represents metadata for a collection."""
