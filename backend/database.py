@@ -72,7 +72,7 @@ def get_users_chats(user_id: str) -> list[ChatInDB]:
         raise EntityNotFoundException(entity_name="User", entity_id=user_id)
 
     chats = get_all_chats()
-    return [chat for chat in chats if chat.user_ids.__contains__(user_id)]
+    return [chat for chat in chats if user_id in chat.user_ids]
 
 def get_all_chats() -> list[ChatInDB]:
     """
