@@ -38,5 +38,5 @@ def get_users_chats(user_id: str):
 
     return ChatCollection(
         meta={"count": len(chats)},
-        chats=sorted(chats, key=lambda chat: chat.id),
+        chats=sorted(chats, key=lambda chat: chat.name),
     )
