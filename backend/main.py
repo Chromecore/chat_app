@@ -4,6 +4,7 @@ from backend.routers.user_routers import users_router
 from backend.routers.chat_routers import chats_router
 from backend.database import EntityNotFoundException
 from backend.database import DuplicateEntityException
+from fastapi.middleware.cors import CORSMiddleware
 
 # python -m uvicorn backend.main:app --reload
 
@@ -11,6 +12,14 @@ app = FastAPI(
     title="Pony Express API",
     description="API for managing users and chats",
     version="0.0.1",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"], # change this as appropriate for your setup
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(users_router)
