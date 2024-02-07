@@ -21,6 +21,7 @@ function ChatPreview({ chat }) {
 function ChatList({ chats }) {
     return (
         <div>
+            <h1>Chats</h1>
             {chats.map((chat) => (
                 <ChatPreview key={chat.id} chat={chat} />
             ))}
@@ -34,7 +35,7 @@ function Message({ message }) {
     const time = dateDate.toLocaleTimeString();
 
     return (
-        <div class="message">
+        <div className="message">
             <p>{message.user_id} {date} - {time}</p>
             <p>{message.text}</p>
         </div>
@@ -44,6 +45,7 @@ function Message({ message }) {
 function MessageList({ messages }) {
     return (
         <div>
+            <h1>Messages</h1>
             {messages.map((message) => (
                 <Message key={message.id} message={message} />
             ))}
@@ -107,11 +109,10 @@ function ChatsPage() {
 
     return (
         <>
-            <h1>Chats</h1>
             <div class="chats-page">
                 {!isloading && data?.chats ?
                     <ChatList chats={data.chats} /> :
-                    <h2>NEVER!!!</h2>
+                    <></>
                 }
                 <ChatMessages />
             </div>
