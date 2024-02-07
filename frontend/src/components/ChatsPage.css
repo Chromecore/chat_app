@@ -1,0 +1,17 @@
+.chat-preview {
+    display: grid;
+    border: 1px solid white;
+    padding: 10px;
+}
+
+.chats-page {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+}
+
+.message {
+    display: grid;
+    border: 1px solid white;
+    padding: 10px;
+}
