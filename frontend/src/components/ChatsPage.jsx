@@ -55,14 +55,12 @@ function MessageList({ messages }) {
 
 function ChatMessages() {
     const { chatId } = useParams();
-    if (!chatId) {
-        return <p>Select a chat</p>;
-    }
 
     const navigate = useNavigate();
     const { data, isloading } = useQuery({
         queryKey: ["messages", chatId],
         queryFn: () => (
+            chatId ?
             fetch(`http://127.0.0.1:8000/chats/${chatId}/messages`)
                 .then((response) => {
                     if (!response.ok) {
@@ -71,9 +69,13 @@ function ChatMessages() {
                             navigate("/error");
                     }
                     return response.json()
-                })
+                }) : undefined
         ),
     });
+
+    if (!chatId) {
+        return <p>Select a chat</p>;
+    }
 
     if (isloading) {
         return <p>Loading...</p>;
@@ -83,7 +85,7 @@ function ChatMessages() {
         return <MessageList messages={data.messages} />;
     }
 
-    return <navigate to="/error" />;
+    return <h1>Test</h1>//<Navigate to="/error" />;
 }
 
 function ChatsPage() {
@@ -109,7 +111,7 @@ function ChatsPage() {
 
     return (
         <>
-            <div class="chats-page">
+            <div className="chats-page">
                 {!isloading && data?.chats ?
                     <ChatList chats={data.chats} /> :
                     <></>
