@@ -1,5 +1,6 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from backend import database as db
+from sqlmodel import Session
 from backend.entities import (
     ChatCollection,
     ChatUpdate,
@@ -11,9 +12,9 @@ from backend.entities import (
 chats_router = APIRouter(prefix="/chats", tags=["Chats"])
 
 @chats_router.get("", response_model=ChatCollection)
-def get_chats():
+def get_chats(session: Session = Depends(db.get_session)):
     """Get all chats sorted by name."""
-    chats = db.get_all_chats()
+    chats = db.get_all_chats(session)
 
     return ChatCollection(
         meta={"count": len(chats)},
@@ -23,29 +24,21 @@ def get_chats():
 
 @chats_router.get("/{chat_id}", response_model=ChatResponse,
                   description="Get a chat for a given chat id.")
-def get_chat(chat_id: str):
+def get_chat(chat_id: str, session: Session = Depends(db.get_session)):
     """Get a chat by id."""
-    return ChatResponse(chat=db.get_chat_by_id(chat_id))
+    return ChatResponse(chat=db.get_chat_by_id(session, chat_id))
 
 
 @chats_router.put("/{chat_id}", response_model=ChatResponse)
-def update_chat(chat_id: str, chat_update: ChatUpdate):
+def update_chat(chat_id: str, chat_update: ChatUpdate, session: Session = Depends(db.get_session)):
     """Updates a chat by id."""
-    return ChatResponse(chat=db.update_chat(chat_id, chat_update))
-
-
-@chats_router.delete("/{chat_id}", 
-                     status_code=204,
-                     response_model=None)
-def delete_chat(chat_id: str):
-    """Deletes a chat by id."""
-    db.delete_chat(chat_id)
+    return ChatResponse(chat=db.update_chat(session, chat_id, chat_update))
 
 
 @chats_router.get("/{chat_id}/messages", response_model=MessageCollection)
-def get_chat_messages(chat_id: str):
+def get_chat_messages(chat_id: str, session: Session = Depends(db.get_session)):
     """Gets a chats messages by chat id."""
-    messages = db.get_chat_messages(chat_id)
+    messages = db.get_chat_messages(session, chat_id)
 
     return MessageCollection(
         meta={"count": len(messages)},
@@ -54,9 +47,9 @@ def get_chat_messages(chat_id: str):
 
 
 @chats_router.get("/{chat_id}/users", response_model=UserCollection)
-def get_chat_users(chat_id: str):
+def get_chat_users(chat_id: str, session: Session = Depends(db.get_session)):
     """Gets a chats users by chat id."""
-    users = db.get_chat_users(chat_id)
+    users = db.get_chat_users(session, chat_id)
 
     return UserCollection(
         meta={"count": len(users)},

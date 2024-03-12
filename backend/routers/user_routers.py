@@ -1,9 +1,9 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from backend import database as db
+from sqlmodel import Session
 from backend.entities import (
     UserCollection, 
     ChatCollection,
-    UserInDB,
     UserCreate,
     UserResponse,
 )
@@ -11,30 +11,25 @@ from backend.entities import (
 users_router = APIRouter(prefix="/users", tags=["Users"])
 
 @users_router.get("", response_model=UserCollection)
-def get_users():
+def get_users(session: Session = Depends(db.get_session)):
     """Get all users sorted by ID."""
-    users = db.get_all_users()
+    users = db.get_all_users(session)
 
     return UserCollection(
         meta={"count": len(users)},
         users=sorted(users, key=lambda user: user.id),
     )
 
-@users_router.post("", response_model=UserResponse)
-def create_user(user_create: UserCreate):
-    """Adds a new user."""
-    return UserResponse(user=db.create_user(user_create))
-
 @users_router.get("/{user_id}", response_model=UserResponse,
-                  description="Get a user for a given user id.")
-def get_user(user_id: str):
+                  description="Get a user for a given user id.",)
+def get_user(user_id: str, session: Session = Depends(db.get_session)):
     """Get a user by id."""
-    return UserResponse(user=db.get_user_by_id(user_id))
+    return {"users": UserResponse(user=db.get_user_by_id(session, user_id))}
 
 @users_router.get("/{user_id}/chats", response_model=ChatCollection)
-def get_users_chats(user_id: str):
+def get_users_chats(user_id: str, session: Session = Depends(db.get_session)):
     """Gets all chats from a user by user id."""
-    chats = db.get_users_chats(user_id)
+    chats = db.get_users_chats(session, user_id)
 
     return ChatCollection(
         meta={"count": len(chats)},

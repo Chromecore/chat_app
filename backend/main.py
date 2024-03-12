@@ -5,13 +5,22 @@ from backend.routers.chat_routers import chats_router
 from backend.database import EntityNotFoundException
 from backend.database import DuplicateEntityException
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+from backend.database import create_db_and_tables
+from backend.auth import auth_router
 
 # python -m uvicorn backend.main:app --reload
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_db_and_tables()
+    yield
 
 app = FastAPI(
     title="Pony Express API",
     description="API for managing users and chats",
     version="0.0.1",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -24,6 +33,7 @@ app.add_middleware(
 
 app.include_router(users_router)
 app.include_router(chats_router)
+app.include_router(auth_router)
 
 # handle custom exceptions
 @app.exception_handler(EntityNotFoundException)
