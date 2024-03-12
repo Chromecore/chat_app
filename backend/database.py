@@ -6,6 +6,8 @@ from backend.entities import (
     ChatInDB,
     ChatUpdate,
     MessageInDB,
+    UserUpdate,
+    Message,
 )
 
 # create database engine
@@ -26,18 +28,17 @@ def get_session():
 #    DB = json.load(f)
 
 class EntityNotFoundException(Exception):
-    def __init__(self, *, entity_name: str, entity_id: str):
+    def __init__(self, *, entity_name: str, entity_id: int):
         self.entity_name = entity_name
         self.entity_id = entity_id
 
 class DuplicateEntityException(Exception):
-    def __init__(self, *, entity_name: str, entity_id: str):
+    def __init__(self, *, entity_name: str, entity_id: int):
         self.entity_name = entity_name
         self.entity_id = entity_id
 
 
 #   -------- Users --------   #
-
 
 def get_all_users(session: Session) -> list[UserInDB]:
     """
@@ -67,7 +68,25 @@ def create_user(session: Session, user_create: UserCreate) -> UserInDB:
     session.refresh(user)
     return user
 
-def get_user_by_id(session: Session, user_id: str) -> UserInDB:
+def update_user(session: Session, user_id: int, user_update: UserUpdate) -> UserInDB:
+    """
+    Update a user from the database.
+
+    :param user_id: id of the user to be retrieved
+    :param user_update: attributes to be updated
+    :return: the updated user
+    """
+    user = get_user_by_id(session, user_id)
+    for attr, value in user_update.model_dump(exclude_unset=True).items():
+        setattr(user, attr, value)
+    
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
+    return user
+
+def get_user_by_id(session: Session, user_id: int) -> UserInDB:
     """
     Retrieve a user from the database.
 
@@ -80,7 +99,7 @@ def get_user_by_id(session: Session, user_id: str) -> UserInDB:
     
     raise EntityNotFoundException(entity_name="User", entity_id=user_id)
 
-def get_users_chats(session: Session, user_id: str) -> list[ChatInDB]:
+def get_users_chats(session: Session, user_id: int) -> list[ChatInDB]:
     """
     Retrieve a users chats from the database.
 
@@ -103,7 +122,7 @@ def get_all_chats(session: Session) -> list[ChatInDB]:
     """
     return session.exec(select(ChatInDB)).all()
 
-def get_chat_by_id(session: Session, chat_id: str) -> ChatInDB:
+def get_chat_by_id(session: Session, chat_id: int) -> ChatInDB:
     """
     Retrieve a chat from the database.
 
@@ -117,19 +136,7 @@ def get_chat_by_id(session: Session, chat_id: str) -> ChatInDB:
 
     raise EntityNotFoundException(entity_name="Chat", entity_id=chat_id)
 
-# def get_chat_with_messages_by_id(session: Session, chat_id: str) -> ChatWithMessagesInDB:
-#     """
-#     Retrieve a chat with its messages from the database.
-
-#     :param chat_id: id of the chat to be retrieved
-#     :return: the retrieved chat
-#     """
-#     if(chat_id in DB["chats"]):
-#         return ChatWithMessagesInDB(**DB["chats"][chat_id])
-    
-#     raise EntityNotFoundException(entity_name="Chat", entity_id=chat_id)
-
-def update_chat(session: Session, chat_id: str, chat_update: ChatUpdate) -> ChatInDB:
+def update_chat(session: Session, chat_id: int, chat_update: ChatUpdate) -> ChatInDB:
     """
     Update a chat in the database
 
@@ -148,7 +155,7 @@ def update_chat(session: Session, chat_id: str, chat_update: ChatUpdate) -> Chat
 
     return chat
 
-def delete_chat(session: Session, chat_id: str):
+def delete_chat(session: Session, chat_id: int):
     """
     Delete a chat from the database.
 
@@ -159,7 +166,7 @@ def delete_chat(session: Session, chat_id: str):
     session.delete(chat)
     session.commit()
 
-def get_chat_messages(session: Session, chat_id: str) -> list[MessageInDB]:
+def get_chat_messages(session: Session, chat_id: int) -> list[MessageInDB]:
     """
     Retrieve a chats messages from the database.
 
@@ -171,7 +178,7 @@ def get_chat_messages(session: Session, chat_id: str) -> list[MessageInDB]:
 
     return chat.messages
 
-def get_chat_users(session: Session, chat_id: str) -> list[UserInDB]:
+def get_chat_users(session: Session, chat_id: int) -> list[UserInDB]:
     """
     Retrieve a chats users from the database.
 
@@ -181,3 +188,26 @@ def get_chat_users(session: Session, chat_id: str) -> list[UserInDB]:
     chat = get_chat_by_id(session, chat_id)
     all_users = get_all_users(session)
     return [user for user in all_users if chat.user_ids.__contains__(user.id)]
+
+def create_message(session: Session, chat_id: int, user_id: int, text: str) -> MessageInDB:
+    """
+    Adds a new message for the current user in the givin chat.
+
+    :param chat_id: id of the chat
+    :param user_id: id of the user
+    :param text: the text for the message
+    :return: the newly added message
+    """
+    get_chat_by_id(chat_id)
+
+    message = MessageInDB(
+        text = text,
+        user_id = user_id,
+        chat_id = chat_id,
+    )
+
+    session.add(message)
+    session.commit()
+    session.refresh(message)
+
+    return message

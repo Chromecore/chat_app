@@ -7,7 +7,10 @@ from backend.entities import (
     MessageCollection,
     ChatResponse,
     UserCollection,
+    MessageResponse,
+    UserInDB,
 )
+from backend.auth import get_current_user
 
 chats_router = APIRouter(prefix="/chats", tags=["Chats"])
 
@@ -55,3 +58,13 @@ def get_chat_users(chat_id: str, session: Session = Depends(db.get_session)):
         meta={"count": len(users)},
         users=sorted(users, key=lambda user: user.id),
     )
+
+@chats_router.post("/{chat_id}/messages", status_code=201, response_model=MessageResponse)
+def create_new_message(text: str, 
+                       chat_id: str,
+                       user: UserInDB = Depends(get_current_user),
+                       session: Session = Depends(db.get_session)
+                       ):
+    """Create a new message for the current user."""
+    message = db.create_message(session, chat_id, user.id, text)
+    return MessageResponse(message=message)

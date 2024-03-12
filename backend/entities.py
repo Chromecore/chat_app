@@ -31,6 +31,11 @@ class UserCreate(BaseModel):
     """Represents parameters for adding a new user to the system."""
     id: int
 
+class UserUpdate(BaseModel):
+    """Request model for updating user in the system."""
+    username: str = None
+    email: str = None
+
 class User(BaseModel):
     """Represents a user."""
     id: int
@@ -88,22 +93,17 @@ class ChatResponse(BaseModel):
     """Represents a response for a chat."""
     chat: Chat
 
-class MessageResponse(BaseModel):
-    """Represents a response for a message."""
+class Message(BaseModel):
+    """Represents a message."""
     id: int
     text: str
     chat_id: int
     user: User
     created_at: str
 
-# class ChatWithMessagesInDB(BaseModel):
-#     """Represents a chat with its messages in the database."""
-#     id: int
-#     name: str
-#     user_ids: list[str]
-#     messages: list[MessageInDB]
-#     owner_id: str
-#     created_at: datetime
+class MessageResponse(BaseModel):
+    """Represents a response for a message."""
+    message: Message
 
 class Metadata(BaseModel):
     """Represents metadata for a collection."""
@@ -122,4 +122,4 @@ class ChatCollection(BaseModel):
 class MessageCollection(BaseModel):
     """Represents an API response for a collection of messages."""
     meta: Metadata
-    messages: list[MessageResponse]
+    messages: list[Message]
