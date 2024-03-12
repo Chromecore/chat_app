@@ -31,12 +31,16 @@ class UserCreate(BaseModel):
     """Represents parameters for adding a new user to the system."""
     id: int
 
-class UserResponse(BaseModel):
-    """Represents a response for a user."""
+class User(BaseModel):
+    """Represents a user."""
     id: int
     username: str
     email: str
     created_at: str
+
+class UserResponse(BaseModel):
+    """Represents a response for a user."""
+    user: User
 
 class ChatInDB(SQLModel, table=True):
     """Database model for chat."""
@@ -69,12 +73,27 @@ class MessageInDB(SQLModel, table=True):
     user: UserInDB = Relationship()
     chat: ChatInDB = Relationship(back_populates="messages")
 
+class ChatUpdate(BaseModel):
+    """Represents parameters for updating a chat in the system."""
+    name: str = None
+
+class Chat(BaseModel):
+    """Represents a chat."""
+    id: int
+    name: str
+    owner: User
+    created_at: str
+
+class ChatResponse(BaseModel):
+    """Represents a response for a chat."""
+    chat: Chat
+
 class MessageResponse(BaseModel):
     """Represents a response for a message."""
     id: int
     text: str
     chat_id: int
-    user: UserResponse
+    user: User
     created_at: str
 
 # class ChatWithMessagesInDB(BaseModel):
@@ -86,17 +105,6 @@ class MessageResponse(BaseModel):
 #     owner_id: str
 #     created_at: datetime
 
-class ChatUpdate(BaseModel):
-    """Represents parameters for updating a chat in the system."""
-    name: str = None
-
-class ChatResponse(BaseModel):
-    """Represents a response for a chat."""
-    id: int
-    name: str
-    owner: UserResponse
-    created_at: str
-
 class Metadata(BaseModel):
     """Represents metadata for a collection."""
     count: int
@@ -104,12 +112,12 @@ class Metadata(BaseModel):
 class UserCollection(BaseModel):
     """Represents an API response for a collection of users."""
     meta: Metadata
-    users: list[UserResponse]
+    users: list[User]
 
 class ChatCollection(BaseModel):
     """Represents an API response for a collection of chats."""
     meta: Metadata
-    chats: list[ChatResponse]
+    chats: list[Chat]
 
 class MessageCollection(BaseModel):
     """Represents an API response for a collection of messages."""
