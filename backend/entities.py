@@ -36,12 +36,12 @@ class UserUpdate(BaseModel):
     username: str = None
     email: str = None
 
-class User(BaseModel):
+class User(SQLModel):
     """Represents a user."""
     id: int
     username: str
     email: str
-    created_at: str
+    created_at: datetime
 
 class UserResponse(BaseModel):
     """Represents a response for a user."""
@@ -82,20 +82,20 @@ class ChatUpdate(BaseModel):
     """Represents parameters for updating a chat in the system."""
     name: str = None
 
-class Chat(BaseModel):
+class Chat(SQLModel):
     """Represents a chat."""
     id: int
     name: str
     owner: User
-    created_at: str
+    created_at: datetime
 
-class Message(BaseModel):
+class Message(SQLModel):
     """Represents a message."""
     id: int
     text: str
     chat_id: int
     user: User
-    created_at: str
+    created_at: datetime
 
 class MessageResponse(BaseModel):
     """Represents a response for a message."""

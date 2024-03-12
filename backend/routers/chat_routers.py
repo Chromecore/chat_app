@@ -30,8 +30,8 @@ def get_chats(session: Session = Depends(db.get_session)):
 
 @chats_router.get("/{chat_id}", response_model=ChatResponseWithMeta,
                   description="Get a chat for a given chat id.")
-def get_chat(chat_id: str, 
-             include: list[str], 
+def get_chat(include: list[str],
+             chat_id: str,
              session: Session = Depends(db.get_session),
              ):
     """Get a chat by id."""

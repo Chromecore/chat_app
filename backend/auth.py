@@ -19,7 +19,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 access_token_duration = 3600  # seconds
 jwt_alg = "HS256"
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
-jwt_key = "5E785652E40F89EF90DE4A9D7B7FE70F"  #os.environ.get("JWT_KEY")
+jwt_key = os.environ.get("JWT_KEY")
 auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 class UserRegistration(SQLModel):
@@ -89,7 +89,7 @@ def register_new_user(
     session: Annotated[Session, Depends(db.get_session)],
 ):
     """Register new user."""
-    check_user_does_not_exist()
+    check_user_does_not_exist(session, registration.username, registration.email)
 
     hashed_password = pwd_context.hash(registration.password)
     user = UserInDB(

@@ -23,11 +23,13 @@ def get_users(session: Session = Depends(db.get_session)):
         users=sorted(users, key=lambda user: user.id),
     )
 
+
 @users_router.get("/{user_id}", response_model=UserResponse,
                   description="Get a user for a given user id.",)
 def get_user(user_id: int, session: Session = Depends(db.get_session)):
     """Get a user by id."""
-    return {"users": UserResponse(user=db.get_user_by_id(session, user_id))}
+    return UserResponse(user=db.get_user_by_id(session, user_id))
+
 
 @users_router.get("/{user_id}/chats", response_model=ChatCollection)
 def get_users_chats(user_id: int, session: Session = Depends(db.get_session)):
@@ -39,10 +41,12 @@ def get_users_chats(user_id: int, session: Session = Depends(db.get_session)):
         chats=sorted(chats, key=lambda chat: chat.name),
     )
 
+
 @users_router.get("/me", response_model=UserResponse)
 def get_self(user: UserInDB = Depends(get_current_user)):
     """Get current user."""
     return UserResponse(user=user)
+
 
 @users_router.put("/me", response_model=UserResponse)
 def update_user(user_update: UserUpdate, 

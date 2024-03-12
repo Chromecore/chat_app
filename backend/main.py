@@ -19,9 +19,13 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Pony Express API",
     description="API for managing users and chats",
-    version="0.0.1",
+    version="0.1.0",
     lifespan=lifespan,
 )
+
+app.include_router(users_router)
+app.include_router(chats_router)
+app.include_router(auth_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -30,10 +34,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-app.include_router(users_router)
-app.include_router(chats_router)
-app.include_router(auth_router)
 
 # handle custom exceptions
 @app.exception_handler(EntityNotFoundException)

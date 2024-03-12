@@ -106,9 +106,9 @@ def get_users_chats(session: Session, user_id: int) -> list[ChatInDB]:
     :param user_id: id of the user
     :return: ordered list of chats
     """
-    get_user_by_id(session, user_id)
+    user = get_user_by_id(session, user_id)
     chats = get_all_chats(session)
-    return [chat for chat in chats if user_id in chat.user_ids]
+    return [chat for chat in chats if user in chat.users]
 
 
 #   -------- Chats --------   #
@@ -187,7 +187,7 @@ def get_chat_users(session: Session, chat_id: int) -> list[UserInDB]:
     """
     chat = get_chat_by_id(session, chat_id)
     all_users = get_all_users(session)
-    return [user for user in all_users if chat.user_ids.__contains__(user.id)]
+    return [user for user in all_users if chat.users.__contains__(user)]
 
 def create_message(session: Session, chat_id: int, user_id: int, text: str) -> MessageInDB:
     """
