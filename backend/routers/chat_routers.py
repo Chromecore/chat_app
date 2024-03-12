@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends
+from typing import Optional
+from fastapi import APIRouter, Depends, Query
 from backend import database as db
 from sqlmodel import Session
 from backend.entities import (
@@ -13,7 +14,6 @@ from backend.entities import (
     ChatMetadata,
 )
 from backend.auth import get_current_user
-from sqlmodel import Field
 
 chats_router = APIRouter(prefix="/chats", tags=["Chats"])
 
@@ -30,8 +30,8 @@ def get_chats(session: Session = Depends(db.get_session)):
 
 @chats_router.get("/{chat_id}", response_model=ChatResponseWithMeta,
                   description="Get a chat for a given chat id.")
-def get_chat(include: list[str],
-             chat_id: str,
+def get_chat(chat_id: str,
+             include: list[str] = Query(None),
              session: Session = Depends(db.get_session),
              ):
     """Get a chat by id."""
@@ -40,20 +40,47 @@ def get_chat(include: list[str],
     # get messages and users
     messages = None
     users = None
-    if("messages" in include):
+    if(include is not None and "messages" in include):
         messages = chat.messages
-    if("users" in include):
+    if(include is not None and "users" in include):
         users = chat.users
 
-    return ChatResponseWithMeta(
-        meta=ChatMetadata(
-            message_count = chat.messages.count,
-            user_count = chat.users.count,
-        ),
-        chat = chat,
-        messages = messages,
-        users = users,
-        )
+    if(messages and users):
+        return ChatResponseWithMeta(
+            meta=ChatMetadata(
+                message_count = chat.messages.__sizeof__(),
+                user_count = chat.users.__sizeof__(),
+            ),
+            chat = chat,
+            messages = messages,
+            users = users,
+            )
+    elif(messages):
+        return ChatResponseWithMeta(
+            meta=ChatMetadata(
+                message_count = chat.messages.__sizeof__(),
+                user_count = chat.users.__sizeof__(),
+            ),
+            chat = chat,
+            messages = messages,
+            )
+    elif(users):
+        return ChatResponseWithMeta(
+            meta=ChatMetadata(
+                message_count = chat.messages.__sizeof__(),
+                user_count = chat.users.__sizeof__(),
+            ),
+            chat = chat,
+            users = users,
+            )
+    else:
+        return ChatResponseWithMeta(
+            meta=ChatMetadata(
+                message_count = chat.messages.__sizeof__(),
+                user_count = chat.users.__sizeof__(),
+            ),
+            chat = chat,
+            )
 
 
 @chats_router.put("/{chat_id}", response_model=ChatResponse)

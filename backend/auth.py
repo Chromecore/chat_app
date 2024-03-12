@@ -19,7 +19,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 access_token_duration = 3600  # seconds
 jwt_alg = "HS256"
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
-jwt_key = os.environ.get("JWT_KEY")
+jwt_key = "12345678912345678912345678912345" #os.environ.get("JWT_KEY")
 auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 class UserRegistration(SQLModel):
@@ -162,7 +162,7 @@ def _decode_access_token(session: Session, token: str) -> UserInDB:
     try:
         claims_dict = jwt.decode(token, key=jwt_key, algorithms=[jwt_alg])
         claims = Claims(**claims_dict)
-        user_id = claims.sub
+        user_id = int(claims.sub)
         user = session.get(UserInDB, user_id)
 
         if user is None:

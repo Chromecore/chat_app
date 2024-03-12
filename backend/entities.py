@@ -114,7 +114,7 @@ class ChatResponseWithMeta(BaseModel):
     """Represents a response for a chat."""
     meta: ChatMetadata
     chat: Chat
-    messages: list[Message] = None
+    messages: list[Message] = Field(default=None)
     users: list[User] = None
 
 class Metadata(BaseModel):

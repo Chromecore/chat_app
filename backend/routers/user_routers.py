@@ -4,7 +4,6 @@ from sqlmodel import Session
 from backend.entities import (
     UserCollection, 
     ChatCollection,
-    UserCreate,
     UserResponse,
     UserInDB,
     UserUpdate,

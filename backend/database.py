@@ -7,7 +7,6 @@ from backend.entities import (
     ChatUpdate,
     MessageInDB,
     UserUpdate,
-    Message,
 )
 
 # create database engine
