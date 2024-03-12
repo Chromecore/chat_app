@@ -9,8 +9,11 @@ from backend.entities import (
     UserCollection,
     MessageResponse,
     UserInDB,
+    ChatResponseWithMeta,
+    ChatMetadata,
 )
 from backend.auth import get_current_user
+from sqlmodel import Field
 
 chats_router = APIRouter(prefix="/chats", tags=["Chats"])
 
@@ -25,11 +28,32 @@ def get_chats(session: Session = Depends(db.get_session)):
     )
 
 
-@chats_router.get("/{chat_id}", response_model=ChatResponse,
+@chats_router.get("/{chat_id}", response_model=ChatResponseWithMeta,
                   description="Get a chat for a given chat id.")
-def get_chat(chat_id: str, session: Session = Depends(db.get_session)):
+def get_chat(chat_id: str, 
+             include: list[str], 
+             session: Session = Depends(db.get_session),
+             ):
     """Get a chat by id."""
-    return ChatResponse(chat=db.get_chat_by_id(session, chat_id))
+    chat = db.get_chat_by_id(session, chat_id)
+
+    # get messages and users
+    messages = None
+    users = None
+    if("messages" in include):
+        messages = chat.messages
+    if("users" in include):
+        users = chat.users
+
+    return ChatResponseWithMeta(
+        meta=ChatMetadata(
+            message_count = chat.messages.count,
+            user_count = chat.users.count,
+        ),
+        chat = chat,
+        messages = messages,
+        users = users,
+        )
 
 
 @chats_router.put("/{chat_id}", response_model=ChatResponse)

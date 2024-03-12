@@ -89,10 +89,6 @@ class Chat(BaseModel):
     owner: User
     created_at: str
 
-class ChatResponse(BaseModel):
-    """Represents a response for a chat."""
-    chat: Chat
-
 class Message(BaseModel):
     """Represents a message."""
     id: int
@@ -104,6 +100,22 @@ class Message(BaseModel):
 class MessageResponse(BaseModel):
     """Represents a response for a message."""
     message: Message
+
+class ChatMetadata(BaseModel):
+    """Represents metadata for a chat."""
+    message_count: int
+    user_count: int
+
+class ChatResponse(BaseModel):
+    """Represents a response for a chat."""
+    chat: Chat
+
+class ChatResponseWithMeta(BaseModel):
+    """Represents a response for a chat."""
+    meta: ChatMetadata
+    chat: Chat
+    messages: list[Message] = None
+    users: list[User] = None
 
 class Metadata(BaseModel):
     """Represents metadata for a collection."""
