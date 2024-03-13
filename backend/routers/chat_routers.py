@@ -45,42 +45,15 @@ def get_chat(chat_id: str,
     if(include is not None and "users" in include):
         users = chat.users
 
-    if(messages and users):
-        return ChatResponseWithMeta(
-            meta=ChatMetadata(
-                message_count = chat.messages.__sizeof__(),
-                user_count = chat.users.__sizeof__(),
-            ),
-            chat = chat,
-            messages = messages,
-            users = users,
-            )
-    elif(messages):
-        return ChatResponseWithMeta(
-            meta=ChatMetadata(
-                message_count = chat.messages.__sizeof__(),
-                user_count = chat.users.__sizeof__(),
-            ),
-            chat = chat,
-            messages = messages,
-            )
-    elif(users):
-        return ChatResponseWithMeta(
-            meta=ChatMetadata(
-                message_count = chat.messages.__sizeof__(),
-                user_count = chat.users.__sizeof__(),
-            ),
-            chat = chat,
-            users = users,
-            )
-    else:
-        return ChatResponseWithMeta(
-            meta=ChatMetadata(
-                message_count = chat.messages.__sizeof__(),
-                user_count = chat.users.__sizeof__(),
-            ),
-            chat = chat,
-            )
+    return ChatResponseWithMeta(
+        meta=ChatMetadata(
+            message_count = chat.messages.__sizeof__(),
+            user_count = chat.users.__sizeof__(),
+        ),
+        chat = chat,
+        messages = messages,
+        users = users,
+    )
 
 
 @chats_router.put("/{chat_id}", response_model=ChatResponse)

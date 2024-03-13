@@ -60,14 +60,14 @@ class InvalidToken(AuthException):
     def __init__(self):
         super().__init__(
             error="invalid_client",
-            description="invalid bearer token",
+            description="invalid access token",
         )
 
 class ExpiredToken(AuthException):
     def __init__(self):
         super().__init__(
             error="invalid_client",
-            description="expired bearer token",
+            description="expired access token",
         )
 
 class DuplicateCredentials(HTTPException):
@@ -82,7 +82,7 @@ class DuplicateCredentials(HTTPException):
             },
         )
 
-@auth_router.post("/registration", response_model=User, status_code=201)
+@auth_router.post("/registration", response_model=UserResponse, status_code=201)
 def register_new_user(
     registration: UserRegistration,
     session: Annotated[Session, Depends(db.get_session)],
@@ -99,7 +99,7 @@ def register_new_user(
     session.add(user)
     session.commit()
     session.refresh(user)
-    return user
+    return UserResponse(user=user)
 
 def check_user_does_not_exist(session, username, email):
     #check username
