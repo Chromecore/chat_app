@@ -97,6 +97,10 @@ class Message(SQLModel):
     user: User
     created_at: datetime
 
+class MessageCreate(SQLModel):
+    """Represents a message with just the text."""
+    text: str
+
 class MessageResponse(BaseModel):
     """Represents a response for a message."""
     message: Message
