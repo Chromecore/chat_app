@@ -13,7 +13,7 @@ from pydantic import BaseModel, ValidationError
 from sqlmodel import Session, SQLModel, select
 
 from backend import database as db
-from backend.entities import UserResponse, UserInDB
+from backend.entities import UserResponse, UserInDB, User
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 access_token_duration = 3600  # seconds
@@ -82,10 +82,9 @@ class DuplicateCredentials(HTTPException):
             },
         )
 
-@auth_router.post("/registration", response_model=UserResponse, status_code=201)
+@auth_router.post("/registration", response_model=User, status_code=201)
 def register_new_user(
     registration: UserRegistration,
-    # session: Session = Depends(db.get_session),
     session: Annotated[Session, Depends(db.get_session)],
 ):
     """Register new user."""
