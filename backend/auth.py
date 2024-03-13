@@ -121,7 +121,6 @@ def get_access_token(
     session: Session = Depends(db.get_session),
 ):
     """Get access token for user."""
-
     user = _get_authenticated_user(session, form)
     return _build_access_token(user)
 

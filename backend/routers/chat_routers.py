@@ -112,7 +112,7 @@ def get_chat_users(chat_id: str, session: Session = Depends(db.get_session)):
 
 @chats_router.post("/{chat_id}/messages", status_code=201, response_model=MessageResponse)
 def create_new_message(text: str, 
-                       chat_id: str,
+                       chat_id: int,
                        user: UserInDB = Depends(get_current_user),
                        session: Session = Depends(db.get_session)
                        ):

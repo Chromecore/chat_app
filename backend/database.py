@@ -197,7 +197,7 @@ def create_message(session: Session, chat_id: int, user_id: int, text: str) -> M
     :param text: the text for the message
     :return: the newly added message
     """
-    get_chat_by_id(chat_id)
+    get_chat_by_id(session, chat_id)
 
     message = MessageInDB(
         text = text,
