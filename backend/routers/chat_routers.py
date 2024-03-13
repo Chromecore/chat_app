@@ -29,7 +29,8 @@ def get_chats(session: Session = Depends(db.get_session)):
 
 
 @chats_router.get("/{chat_id}", response_model=ChatResponseWithMeta,
-                  description="Get a chat for a given chat id.")
+                  description="Get a chat for a given chat id.",
+                  response_model_exclude_none=True)
 def get_chat(chat_id: str,
              include: list[str] = Query(None),
              session: Session = Depends(db.get_session),
@@ -47,8 +48,8 @@ def get_chat(chat_id: str,
 
     return ChatResponseWithMeta(
         meta=ChatMetadata(
-            message_count = chat.messages.__sizeof__(),
-            user_count = chat.users.__sizeof__(),
+            message_count = len(chat.messages),
+            user_count = len(chat.users),
         ),
         chat = chat,
         messages = messages,
