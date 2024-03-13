@@ -1,105 +1,85 @@
 from fastapi.testclient import TestClient
 from backend.main import app
+from backend.entities import UserChatLinkInDB
 
-def test_get_all_users():
-    client = TestClient(app)
+def test_get_all_users(client, user_fixture):
+    db_users = [user_fixture(username=username, email=f'{username}@email.com') 
+                for username in ["bob", "joe"]]
     response = client.get("/users")
     assert response.status_code == 200
 
     meta = response.json()["meta"]
     users = response.json()["users"]
-    assert meta["count"] == len(users)
-    assert users == sorted(users, key=lambda user: user["id"])
 
-def test_create_user():
-    create_params = {
-        "id": "My Cool ID",
+    assert meta["count"] == len(db_users)
+    assert {user["username"] for user in users} == {
+        db_user.user.username for db_user in db_users
     }
-    client = TestClient(app)
-    response = client.post("/users", json=create_params)
-    assert response.status_code == 200
 
-    user = response.json()
-    for key, value in create_params.items():
-        assert user["user"][key] == value
-
-    response = client.get(f"/users/{user['user']['id']}")
-    assert response.status_code == 200
-
-    user = response.json()
-    for key, value in create_params.items():
-        assert user["user"][key] == value
-
-def test_create_user_duplicate():
-    user_id = "bishop"
-    create_params = {
-        "id": user_id,
-    }
-    client = TestClient(app)
-    response = client.post("/users", json=create_params)
-    assert response.status_code == 422
+def test_get_current_user_not_logged_in(client):
+    response = client.get("/users/me")
+    assert response.status_code == 401
     assert response.json() == {
-        "detail": {
-            "type": "duplicate_entity",
-            "entity_name": "User",
-            "entity_id": user_id,
-        },
+        "detail": "Not authenticated"
     }
 
-def test_get_user_by_id():
-    user_id = "bishop"
+def test_get_user_by_id(client, user_fixture):
+    user = user_fixture(username="bishop", email="testemail").user
     expected_response = {
         "user": {
-            "id": user_id,
-            "created_at": "2014-04-14T10:49:07",
+            "id": user.id,
+            "username": "bishop",
+            "email": "testemail",
+            "created_at": user.created_at.isoformat()
         }
     }
-    client = TestClient(app)
-    response = client.get(f"/users/{user_id}")
+    response = client.get(f"/users/{user.id}")
     assert response.status_code == 200
     assert response.json() == expected_response
 
-def test_get_user_invalid_id():
-    user_id = "invalid_id"
-    client = TestClient(app)
-    response = client.get(f"/users/{user_id}")
+def test_get_user_invalid_id(client):
+    response = client.get(f"/users/{67}")
     assert response.status_code == 404
     assert response.json() == {
         "detail": {
             "type": "entity_not_found",
             "entity_name": "User",
-            "entity_id": user_id,
+            "entity_id": 67,
         },
     }
 
-def test_get_users_chats():
-    user_id = "bishop"
+def test_get_users_chats(client, session, user_fixture, chat_fixture):
+    user = user_fixture(username="bishop", email="testemail").user
+    chat = chat_fixture(name="NewChat", owner_id=user.id)
+    link = UserChatLinkInDB(user_id=user.id, chat_id=chat.id)
+    session.add(link)
+    session.commit()
+    session.refresh(link)
+
     expected_response = {
         "meta": {
             "count": 1
         },
         "chats": [
             {
-            "id": "734eeb9ddaec43b2ab6e289a0d472376",
-            "name": "nostromo",
-            "user_ids": [
-                "bishop",
-                "burke",
-                "ripley"
-            ],
-            "owner_id": "ripley",
-            "created_at": "2023-09-18T14:18:46"
+            "id": chat.id,
+            "name": "NewChat",
+            "owner": {
+                "id": user.id,
+                "username": "bishop",
+                "email": "testemail",
+                "created_at": user.created_at.isoformat()
+            },
+            "created_at": chat.created_at.isoformat()
             }
         ]
     }
-    client = TestClient(app)
-    response = client.get(f"/users/{user_id}/chats")
+    response = client.get(f"/users/{user.id}/chats")
     assert response.status_code == 200
     assert response.json() == expected_response
 
-def test_get_users_chats_invalid_id():
-    user_id = "invalid_id"
-    client = TestClient(app)
+def test_get_users_chats_invalid_id(client):
+    user_id = 69
     response = client.get(f"/users/{user_id}/chats")
     assert response.status_code == 404
     assert response.json() == {
