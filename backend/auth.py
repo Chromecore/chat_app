@@ -13,7 +13,7 @@ from pydantic import BaseModel, ValidationError
 from sqlmodel import Session, SQLModel, select
 
 from backend import database as db
-from backend.entities import UserResponse, UserInDB
+from backend.entities import UserResponse, UserInDB, User
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 access_token_duration = 3600  # seconds
@@ -60,14 +60,14 @@ class InvalidToken(AuthException):
     def __init__(self):
         super().__init__(
             error="invalid_client",
-            description="invalid bearer token",
+            description="invalid access token",
         )
 
 class ExpiredToken(AuthException):
     def __init__(self):
         super().__init__(
             error="invalid_client",
-            description="expired bearer token",
+            description="expired access token",
         )
 
 class DuplicateCredentials(HTTPException):
@@ -85,7 +85,6 @@ class DuplicateCredentials(HTTPException):
 @auth_router.post("/registration", response_model=UserResponse, status_code=201)
 def register_new_user(
     registration: UserRegistration,
-    # session: Session = Depends(db.get_session),
     session: Annotated[Session, Depends(db.get_session)],
 ):
     """Register new user."""
@@ -100,7 +99,7 @@ def register_new_user(
     session.add(user)
     session.commit()
     session.refresh(user)
-    return user
+    return UserResponse(user=user)
 
 def check_user_does_not_exist(session, username, email):
     #check username
@@ -122,7 +121,6 @@ def get_access_token(
     session: Session = Depends(db.get_session),
 ):
     """Get access token for user."""
-
     user = _get_authenticated_user(session, form)
     return _build_access_token(user)
 

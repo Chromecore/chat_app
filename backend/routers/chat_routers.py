@@ -12,6 +12,7 @@ from backend.entities import (
     UserInDB,
     ChatResponseWithMeta,
     ChatMetadata,
+    MessageCreate,
 )
 from backend.auth import get_current_user
 
@@ -29,7 +30,8 @@ def get_chats(session: Session = Depends(db.get_session)):
 
 
 @chats_router.get("/{chat_id}", response_model=ChatResponseWithMeta,
-                  description="Get a chat for a given chat id.")
+                  description="Get a chat for a given chat id.",
+                  response_model_exclude_none=True)
 def get_chat(chat_id: str,
              include: list[str] = Query(None),
              session: Session = Depends(db.get_session),
@@ -45,42 +47,15 @@ def get_chat(chat_id: str,
     if(include is not None and "users" in include):
         users = chat.users
 
-    if(messages and users):
-        return ChatResponseWithMeta(
-            meta=ChatMetadata(
-                message_count = chat.messages.__sizeof__(),
-                user_count = chat.users.__sizeof__(),
-            ),
-            chat = chat,
-            messages = messages,
-            users = users,
-            )
-    elif(messages):
-        return ChatResponseWithMeta(
-            meta=ChatMetadata(
-                message_count = chat.messages.__sizeof__(),
-                user_count = chat.users.__sizeof__(),
-            ),
-            chat = chat,
-            messages = messages,
-            )
-    elif(users):
-        return ChatResponseWithMeta(
-            meta=ChatMetadata(
-                message_count = chat.messages.__sizeof__(),
-                user_count = chat.users.__sizeof__(),
-            ),
-            chat = chat,
-            users = users,
-            )
-    else:
-        return ChatResponseWithMeta(
-            meta=ChatMetadata(
-                message_count = chat.messages.__sizeof__(),
-                user_count = chat.users.__sizeof__(),
-            ),
-            chat = chat,
-            )
+    return ChatResponseWithMeta(
+        meta=ChatMetadata(
+            message_count = len(chat.messages),
+            user_count = len(chat.users),
+        ),
+        chat = chat,
+        messages = messages,
+        users = users,
+    )
 
 
 @chats_router.put("/{chat_id}", response_model=ChatResponse)
@@ -111,11 +86,11 @@ def get_chat_users(chat_id: str, session: Session = Depends(db.get_session)):
     )
 
 @chats_router.post("/{chat_id}/messages", status_code=201, response_model=MessageResponse)
-def create_new_message(text: str, 
-                       chat_id: str,
+def create_new_message(chat_id: int,
+                       text: MessageCreate,
                        user: UserInDB = Depends(get_current_user),
                        session: Session = Depends(db.get_session)
                        ):
     """Create a new message for the current user."""
-    message = db.create_message(session, chat_id, user.id, text)
+    message = db.create_message(session, chat_id, user.id, text.text)
     return MessageResponse(message=message)

@@ -12,6 +12,21 @@ from backend.auth import get_current_user
 
 users_router = APIRouter(prefix="/users", tags=["Users"])
 
+@users_router.get("/me", response_model=UserResponse)
+def get_self(user: UserInDB = Depends(get_current_user)):
+    """Get current user."""
+    return UserResponse(user=user)
+
+
+@users_router.put("/me", response_model=UserResponse)
+def update_user(user_update: UserUpdate, 
+                user: UserInDB = Depends(get_current_user),
+                session: Session = Depends(db.get_session)
+                ):
+    """Update current user."""
+    return UserResponse(user=db.update_user(session, user.id, user_update))
+
+
 @users_router.get("", response_model=UserCollection)
 def get_users(session: Session = Depends(db.get_session)):
     """Get all users sorted by ID."""
@@ -39,18 +54,3 @@ def get_users_chats(user_id: int, session: Session = Depends(db.get_session)):
         meta={"count": len(chats)},
         chats=sorted(chats, key=lambda chat: chat.name),
     )
-
-
-@users_router.get("/me", response_model=UserResponse)
-def get_self(user: UserInDB = Depends(get_current_user)):
-    """Get current user."""
-    return UserResponse(user=user)
-
-
-@users_router.put("/me", response_model=UserResponse)
-def update_user(user_update: UserUpdate, 
-                user: UserInDB = Depends(get_current_user),
-                session: Session = Depends(db.get_session)
-                ):
-    """Update current user."""
-    return UserResponse(user=db.update_user(session, user.id, user_update))
