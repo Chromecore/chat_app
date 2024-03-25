@@ -8,11 +8,11 @@ function ChatPreview({ chat }) {
     return (
         <Link className="chat-preview" to={`/chats/${chat.id}`}>
             <div>{chat.name}</div>
-            <div>
+            {/* <div>
                 {chat.user_ids.map((user_id) => (
                     <span key={user_id}>{user_id}, </span>
                 ))}
-            </div>
+            </div> */}
             <div>created at: {date}</div>
         </Link>
     );
