@@ -3,9 +3,9 @@ import { NavLink } from "react-router-dom";
 
 function NavItem({ to, name, right }) {
     const className = [
-        "border-purple-400",
+        "border-emerald-500",
         "py-2 px-4",
-        "hover:bg-slate-800",
+        "hover:bg-emerald-950",
         right ? "border-l-2" : "border-r-2"
     ].join(" ")
 
@@ -46,7 +46,7 @@ function TopNav() {
     const { isLoggedIn } = useAuth();
 
     return (
-        <nav>
+        <nav className="flex flex-row border-b-4 border-emerald-500">
             {isLoggedIn ?
                 <AuthenticatedNavItems /> :
                 <UnauthenticatedNavItems />

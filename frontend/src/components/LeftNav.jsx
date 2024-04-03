@@ -13,10 +13,10 @@ function Link({ chat }) {
     const url = chat.empty ? "#" : `/chats/${chat.id}`;
     const className = ({ isActive }) => [
         "p-2",
-        "hover:bg-slate-800 hover:text-grn",
+        "hover:bg-zinc-900 hover:text-emerald-500",
         "flex flex-row justify-between",
         isActive ?
-            "bg-slate-800 text-grn font-bold" :
+            "bg-emerald-500 text-zinc-900 font-bold" :
             ""
     ].join(" ");
 
@@ -51,15 +51,15 @@ function LeftNav() {
     ));
 
     return (
-        <nav className="flex flex-col border-r-2 border-purple-400 h-main">
-            <div className="flex flex-col overflow-y-scroll border-b-2 border-purple-400">
+        <nav className="flex flex-col border-r-2 border-emerald-500 h-main">
+            <div className="flex flex-col overflow-y-scroll border-b-2 border-emerald-500 scrollbar-hide">
                 {chats.map((chat) => (
                     <Link key={chat.id} chat={chat} />
                 ))}
             </div>
             <div className="p-2">
                 <input
-                    className="w-36 px-4 py-2 bg-gray-700 border border-gray-500"
+                    className="w-36 px-4 py-2 border border-emerald-900 bg-transparent hover:bg-zinc-900"
                     type="text"
                     placeholder="search"
                     onChange={(e) => setSearch(e.target.value)}

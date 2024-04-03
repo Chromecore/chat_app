@@ -4,12 +4,8 @@ import ChatPage from './ChatPage';
 function ChatsPage() {
     return (
         <div className="flex flex-row h-main">
-            <div className="w-40">
-                <LeftNav />
-            </div>
-            <div className="mx-auto pt-8">
-                <ChatPage />
-            </div>
+            <LeftNav className="w-40" />
+            <ChatPage className="m-1" />
         </div>
     );
 }

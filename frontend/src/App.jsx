@@ -1,6 +1,5 @@
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom';
-import './App.css'
 import ChatsPage from './components/ChatsPage';
 import { AuthProvider } from "./context/auth";
 import { UserProvider } from "./context/user";
@@ -15,15 +14,6 @@ const queryClient = new QueryClient();
 
 function NotFound() {
   return <h1>404: not found</h1>;
-}
-
-function ErrorPage() {
-  return (
-    <>
-      <h1>an error has occurred</h1>
-      <p>contact site admin for support</p>
-    </>
-  );
 }
 
 function Header() {
@@ -62,7 +52,7 @@ function Main() {
   const { isLoggedIn } = useAuth();
 
   return (
-    <main>
+    <main className="max-h-main">
       {isLoggedIn ?
         <AuthenticatedRoutes /> :
         <UnauthenticatedRoutes />
@@ -72,12 +62,19 @@ function Main() {
 }
 
 function App() {
+  const className = [
+    "h-screen max-h-screen",
+    "max-w-2xl mx-auto",
+    "bg-zinc-800 text-white",
+    "flex flex-col",
+  ].join(" ");
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <BrowserRouter>
           <UserProvider>
-            <div>
+            <div className={className}>
               <Header />
               <Main />
             </div>

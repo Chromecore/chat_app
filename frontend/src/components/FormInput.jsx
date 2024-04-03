@@ -13,7 +13,7 @@ function FormInput({ setter, ...props }) {
         "border rounded",
         "px-4 py-2",
         props.readOnly ?
-            "bg-slate-500" :
+            "bg-zinc-900" :
             "bg-transparent border-lgrn",
     ].join(" ");
 

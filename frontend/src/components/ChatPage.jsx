@@ -1,5 +1,7 @@
 import { useQuery } from "react-query";
 import { useNavigate, useParams } from "react-router-dom";
+import NewMessage from "./NewMessage";
+import ScrollContainer from "./ScrollContainer";
 
 function Message({ message }) {
     const dateDate = new Date(message.created_at);
@@ -7,22 +9,25 @@ function Message({ message }) {
     const time = dateDate.toLocaleTimeString();
 
     return (
-        <div className="message">
-            <p>{message.user_id} {date} - {time}</p>
-            <p>{message.text}</p>
+        <div className="flex flex-col justify-between border-b border-slate-500 p-2">
+            <div className="flex flex-row justify-between">
+                <p className="text-lg text-emerald-500">{message.user.username}</p>
+                <p className="font-mono text-sm text-slate-500">{date} - {time}</p>
+            </div>
+            <p className="">{message.text}</p>
         </div>
     )
 }
 
 function MessageList({ messages }) {
-    return (
-        <div>
-            <h1>Messages</h1>
+    return (<>
+        <ScrollContainer className="overflow-y-auto">
             {messages.map((message) => (
                 <Message key={message.id} message={message} />
             ))}
-        </div>
-    );
+            <NewMessage />
+        </ScrollContainer>
+    </>);
 }
 
 function Chat() {
@@ -50,18 +55,12 @@ function Chat() {
     }
 
     if (isloading) {
-        return <p>Loading...</p>;
+        return <p className="font-bold text-2xl py-4 text-center">Loading...</p>;
     }
 
     if (data?.messages) {
         return <>
-            <MessageList messages={data.messages} />;
-            <div className="flex flex-col py-2">
-                <label className="text-s text-gray-400" >
-                    Send
-                </label>
-                <input className="border rounded bg-transparent px-2 py-1" />
-            </div>
+            <MessageList messages={data.messages} />
         </>
     }
 
