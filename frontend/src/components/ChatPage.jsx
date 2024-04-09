@@ -12,7 +12,19 @@ function Message({ message }) {
         <div className="flex flex-col justify-between border-b border-slate-500 p-2">
             <div className="flex flex-row justify-between">
                 <p className="text-lg text-emerald-500">{message.user.username}</p>
-                <p className="font-mono text-sm text-slate-500">{date} - {time}</p>
+                <div className="flex flex-row text-sm">
+                    <p className="font-mono text-slate-500 mx-4">{date} - {time}</p>
+                    <button className="font-sans text-white border rounded 
+                        px-4 bg-transparent hover:bg-zinc-900"
+                        onClick={() => { }}>
+                        Edit
+                    </button>
+                    <button className="font-sans text-white border rounded 
+                        px-2 bg-rose-600/20 hover:bg-zinc-900"
+                        onClick={() => { }}>
+                        Delete
+                    </button>
+                </div>
             </div>
             <p className="">{message.text}</p>
         </div>

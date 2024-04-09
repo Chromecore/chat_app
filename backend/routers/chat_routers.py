@@ -69,7 +69,7 @@ def update_chat(chat_id: str, chat_update: ChatUpdate, session: Session = Depend
 
 @chats_router.get("/{chat_id}/messages", response_model=MessageCollection)
 def get_chat_messages(chat_id: str,
-                      user: UserInDB = Depends(get_current_user),
+                      #user: UserInDB = Depends(get_current_user),
                       session: Session = Depends(db.get_session)):
     """Gets a chats messages by chat id."""
     messages = db.get_chat_messages(session, chat_id)
