@@ -8,6 +8,7 @@ from backend.entities import (
     ChatUpdate,
     MessageInDB,
     UserUpdate,
+    UserChatLinkInDB,
     MessageUpdate,
 )
 
@@ -117,21 +118,20 @@ def get_users_chats(session: Session, user_id: int) -> list[ChatInDB]:
     :return: ordered list of chats
     """
     user = get_user_by_id(session, user_id)
-    chats = get_all_chats(session, user)
+    chats = get_all_chats(session, user_id)
     return [chat for chat in chats if user in chat.users]
 
 
 #   -------- Chats --------   #
 
 
-def get_all_chats(session: Session, user: UserInDB) -> list[ChatInDB]:
+def get_all_chats(session: Session, user_id: int) -> list[ChatInDB]:
     """
     Retrieve all chats from the database.
 
     :return: ordered list of chats
     """
-    # .where(user in ChatInDB.users)
-    return session.exec(select(ChatInDB)).all()
+    return session.exec(select(ChatInDB).join(UserChatLinkInDB).where(UserChatLinkInDB.user_id == user_id)).all()
 
 def get_chat_by_id(session: Session, chat_id: int) -> ChatInDB:
     """
