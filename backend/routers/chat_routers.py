@@ -13,15 +13,17 @@ from backend.entities import (
     ChatResponseWithMeta,
     ChatMetadata,
     MessageCreate,
+    MessageUpdate,
 )
 from backend.auth import get_current_user
 
 chats_router = APIRouter(prefix="/chats", tags=["Chats"])
 
 @chats_router.get("", response_model=ChatCollection)
-def get_chats(session: Session = Depends(db.get_session)):
+def get_chats(user: UserInDB = Depends(get_current_user),
+              session: Session = Depends(db.get_session)):
     """Get all chats sorted by name."""
-    chats = db.get_all_chats(session)
+    chats = db.get_all_chats(session, user)
 
     return ChatCollection(
         meta={"count": len(chats)},
@@ -34,6 +36,7 @@ def get_chats(session: Session = Depends(db.get_session)):
                   response_model_exclude_none=True)
 def get_chat(chat_id: str,
              include: list[str] = Query(None),
+             user: UserInDB = Depends(get_current_user),
              session: Session = Depends(db.get_session),
              ):
     """Get a chat by id."""
@@ -65,7 +68,9 @@ def update_chat(chat_id: str, chat_update: ChatUpdate, session: Session = Depend
 
 
 @chats_router.get("/{chat_id}/messages", response_model=MessageCollection)
-def get_chat_messages(chat_id: str, session: Session = Depends(db.get_session)):
+def get_chat_messages(chat_id: str,
+                      user: UserInDB = Depends(get_current_user),
+                      session: Session = Depends(db.get_session)):
     """Gets a chats messages by chat id."""
     messages = db.get_chat_messages(session, chat_id)
 
@@ -76,7 +81,9 @@ def get_chat_messages(chat_id: str, session: Session = Depends(db.get_session)):
 
 
 @chats_router.get("/{chat_id}/users", response_model=UserCollection)
-def get_chat_users(chat_id: str, session: Session = Depends(db.get_session)):
+def get_chat_users(chat_id: str, 
+                   user: UserInDB = Depends(get_current_user),
+                   session: Session = Depends(db.get_session)):
     """Gets a chats users by chat id."""
     users = db.get_chat_users(session, chat_id)
 
@@ -94,3 +101,20 @@ def create_new_message(chat_id: int,
     """Create a new message for the current user."""
     message = db.create_message(session, chat_id, user.id, text.text)
     return MessageResponse(message=message)
+
+
+@chats_router.put("/{chat_id}/messages/{message_id}", response_model=MessageResponse)
+def update_message(chat_id: int, message_id: int,
+                 message: MessageUpdate,
+                 user: UserInDB = Depends(get_current_user),
+                 session: Session = Depends(db.get_session)):
+    """Updates a message in a certain chat"""
+    message = db.update_message(session, chat_id, message_id, message, user.id)
+    return MessageResponse(message=message)
+
+@chats_router.delete("/{chat_id}/messages/{message_id}", status_code=204)
+def delete_message(chat_id: int, message_id: int,
+                user: UserInDB = Depends(get_current_user),
+                session: Session = Depends(db.get_session)):
+    """Deletes a message in a certain chat"""
+    db.delete_message(session, chat_id, message_id, user.id)

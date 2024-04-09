@@ -1,5 +1,6 @@
 from datetime import datetime
 from sqlmodel import Session, SQLModel, create_engine, select
+from fastapi import HTTPException
 from backend.entities import (
     UserInDB,
     UserCreate,
@@ -7,6 +8,7 @@ from backend.entities import (
     ChatUpdate,
     MessageInDB,
     UserUpdate,
+    MessageUpdate,
 )
 
 # create database engine
@@ -36,6 +38,15 @@ class DuplicateEntityException(Exception):
         self.entity_name = entity_name
         self.entity_id = entity_id
 
+class NoPermissionException(HTTPException):
+    def __init__(self, action: str, entity: str):
+        super().__init__(
+            status_code=403,
+            detail={
+                "error": "no_permission",
+                "error_description": f"requires permission to {action} {entity}"
+            },
+        )
 
 #   -------- Users --------   #
 
@@ -106,19 +117,20 @@ def get_users_chats(session: Session, user_id: int) -> list[ChatInDB]:
     :return: ordered list of chats
     """
     user = get_user_by_id(session, user_id)
-    chats = get_all_chats(session)
+    chats = get_all_chats(session, user)
     return [chat for chat in chats if user in chat.users]
 
 
 #   -------- Chats --------   #
 
 
-def get_all_chats(session: Session) -> list[ChatInDB]:
+def get_all_chats(session: Session, user: UserInDB) -> list[ChatInDB]:
     """
     Retrieve all chats from the database.
 
     :return: ordered list of chats
     """
+    # .where(user in ChatInDB.users)
     return session.exec(select(ChatInDB)).all()
 
 def get_chat_by_id(session: Session, chat_id: int) -> ChatInDB:
@@ -176,6 +188,61 @@ def get_chat_messages(session: Session, chat_id: int) -> list[MessageInDB]:
     chat = get_chat_by_id(session, chat_id)
 
     return chat.messages
+
+def get_chat_message_by_id(session: Session, chat_id: int, message_id: int) -> MessageInDB:
+    """
+    Retrieve a chats message by id from the database.
+
+    :param chat_id: id of the chat
+    :param message_id: id of the message
+    :return: the chat message
+    """
+    messages = get_chat_messages(session, chat_id)
+    for message in messages:
+        if message.id == message_id:
+            return message
+    raise EntityNotFoundException(entity_name="Message", entity_id=message_id)
+
+def update_message(session: Session, chat_id: int, 
+                   message_id: int, message_update: MessageUpdate, 
+                   user_id: int) -> MessageInDB:
+    """
+    Retrieve a chats message by id from the database.
+
+    :param chat_id: id of the chat
+    :param message_id: id of the message
+    :param message_update: the new message
+    :param user_id: the id of the current user
+    :return: the updated message
+    """
+    message = get_chat_message_by_id(session, chat_id, message_id)
+    if message.user.id != user_id:
+        raise NoPermissionException(action="edit", entity="message")
+
+    for attr, value, in message_update.model_dump(exclude_none=True).items():
+        setattr(message, attr, value)
+    
+    session.add(message)
+    session.commit()
+    session.refresh(message)
+
+    return message
+
+def delete_message(session: Session, chat_id: int, 
+                   message_id: int, user_id: int):
+    """
+    Delete a message by id from the database.
+
+    :param chat_id: id of the chat
+    :param message_id: id of the message
+    :param user_id: the id of the current user
+    """
+    message = get_chat_message_by_id(session, chat_id, message_id)
+    if message.user.id != user_id:
+        raise NoPermissionException(action="delete", entity="message")
+    session.delete(message)
+    session.commit()
+
 
 def get_chat_users(session: Session, chat_id: int) -> list[UserInDB]:
     """

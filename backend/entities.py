@@ -105,6 +105,10 @@ class MessageResponse(BaseModel):
     """Represents a response for a message."""
     message: Message
 
+class MessageUpdate(BaseModel):
+    """Represents parameters for updating a message in the system."""
+    text: str
+
 class ChatMetadata(BaseModel):
     """Represents metadata for a chat."""
     message_count: int
