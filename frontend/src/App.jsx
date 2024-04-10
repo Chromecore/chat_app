@@ -13,7 +13,9 @@ import Home from './components/Home';
 const queryClient = new QueryClient();
 
 function NotFound() {
-  return <h1>404: not found</h1>;
+  return <h1>
+    404: not found
+  </h1>;
 }
 
 function Header() {

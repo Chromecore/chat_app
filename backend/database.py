@@ -133,21 +133,27 @@ def get_all_chats(session: Session, user_id: int) -> list[ChatInDB]:
     """
     return session.exec(select(ChatInDB).join(UserChatLinkInDB).where(UserChatLinkInDB.user_id == user_id)).all()
 
-def get_chat_by_id(session: Session, chat_id: int) -> ChatInDB:
+def get_chat_by_id(session: Session, chat_id: int, user_id: int) -> ChatInDB:
     """
     Retrieve a chat from the database.
 
     :param chat_id: id of the chat to be retrieved
     :return: the retrieved chat
     """
-
     chat = session.get(ChatInDB, chat_id)
     if chat:
+        containsUser = False
+        for user in chat.users:
+            if user.id == user_id:
+                containsUser = True
+                break
+        if not containsUser:
+            raise NoPermissionException(action="view", entity="chat")
         return chat
 
     raise EntityNotFoundException(entity_name="Chat", entity_id=chat_id)
 
-def update_chat(session: Session, chat_id: int, chat_update: ChatUpdate) -> ChatInDB:
+def update_chat(session: Session, chat_id: int, user_id: int, chat_update: ChatUpdate) -> ChatInDB:
     """
     Update a chat in the database
 
@@ -155,7 +161,7 @@ def update_chat(session: Session, chat_id: int, chat_update: ChatUpdate) -> Chat
     :param chat_update: attributes to be updated on the animal
     :return: the updated chat
     """
-    chat = get_chat_by_id(session, chat_id)
+    chat = get_chat_by_id(session, chat_id, user_id)
 
     for attr, value, in chat_update.model_dump(exclude_none=True).items():
         setattr(chat, attr, value)
@@ -166,18 +172,18 @@ def update_chat(session: Session, chat_id: int, chat_update: ChatUpdate) -> Chat
 
     return chat
 
-def delete_chat(session: Session, chat_id: int):
+def delete_chat(session: Session, chat_id: int, user_id: int):
     """
     Delete a chat from the database.
 
     :param chat_id: the id of the chat to be deleted
     :raises EntityNotFoundException: if no such chat exists
     """
-    chat = get_chat_by_id(session, chat_id)
+    chat = get_chat_by_id(session, chat_id, user_id)
     session.delete(chat)
     session.commit()
 
-def get_chat_messages(session: Session, chat_id: int) -> list[MessageInDB]:
+def get_chat_messages(session: Session, chat_id: int, user_id: int) -> list[MessageInDB]:
     """
     Retrieve a chats messages from the database.
 
@@ -185,7 +191,7 @@ def get_chat_messages(session: Session, chat_id: int) -> list[MessageInDB]:
     :return: ordered list of chat messages
     """
 
-    chat = get_chat_by_id(session, chat_id)
+    chat = get_chat_by_id(session, chat_id, user_id)
 
     return chat.messages
 
@@ -244,14 +250,14 @@ def delete_message(session: Session, chat_id: int,
     session.commit()
 
 
-def get_chat_users(session: Session, chat_id: int) -> list[UserInDB]:
+def get_chat_users(session: Session, chat_id: int, user_id: int) -> list[UserInDB]:
     """
     Retrieve a chats users from the database.
 
     :param chat_id: id of the chat
     :return: ordered list of chat users
     """
-    chat = get_chat_by_id(session, chat_id)
+    chat = get_chat_by_id(session, chat_id, user_id)
     all_users = get_all_users(session)
     return [user for user in all_users if chat.users.__contains__(user)]
 
@@ -264,7 +270,7 @@ def create_message(session: Session, chat_id: int, user_id: int, text: str) -> M
     :param text: the text for the message
     :return: the newly added message
     """
-    get_chat_by_id(session, chat_id)
+    get_chat_by_id(session, chat_id, user_id)
 
     message = MessageInDB(
         text = text,

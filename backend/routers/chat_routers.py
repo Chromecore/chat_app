@@ -40,7 +40,7 @@ def get_chat(chat_id: str,
              session: Session = Depends(db.get_session),
              ):
     """Get a chat by id."""
-    chat = db.get_chat_by_id(session, chat_id)
+    chat = db.get_chat_by_id(session, chat_id, user.id)
 
     # get messages and users
     messages = None
@@ -62,17 +62,19 @@ def get_chat(chat_id: str,
 
 
 @chats_router.put("/{chat_id}", response_model=ChatResponse)
-def update_chat(chat_id: str, chat_update: ChatUpdate, session: Session = Depends(db.get_session)):
+def update_chat(chat_id: str, chat_update: ChatUpdate,
+                user: UserInDB = Depends(get_current_user),
+                session: Session = Depends(db.get_session)):
     """Updates a chat by id."""
-    return ChatResponse(chat=db.update_chat(session, chat_id, chat_update))
+    return ChatResponse(chat=db.update_chat(session, chat_id, user.id, chat_update))
 
 
 @chats_router.get("/{chat_id}/messages", response_model=MessageCollection)
-def get_chat_messages(chat_id: str,
-                      #user: UserInDB = Depends(get_current_user),
-                      session: Session = Depends(db.get_session)):
+def get_chat_messages(chat_id: str, 
+                   user: UserInDB = Depends(get_current_user),
+                   session: Session = Depends(db.get_session)):
     """Gets a chats messages by chat id."""
-    messages = db.get_chat_messages(session, chat_id)
+    messages = db.get_chat_messages(session, chat_id, user.id)
 
     return MessageCollection(
         meta={"count": len(messages)},
@@ -85,7 +87,7 @@ def get_chat_users(chat_id: str,
                    user: UserInDB = Depends(get_current_user),
                    session: Session = Depends(db.get_session)):
     """Gets a chats users by chat id."""
-    users = db.get_chat_users(session, chat_id)
+    users = db.get_chat_users(session, chat_id, user.id)
 
     return UserCollection(
         meta={"count": len(users)},

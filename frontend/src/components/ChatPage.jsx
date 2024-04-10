@@ -2,6 +2,7 @@ import { useQuery } from "react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import NewMessage from "./NewMessage";
 import ScrollContainer from "./ScrollContainer";
+import { useApi, useAuth } from "../hooks";
 
 function Message({ message }) {
     const dateDate = new Date(message.created_at);
@@ -44,13 +45,16 @@ function MessageList({ messages }) {
 
 function Chat() {
     const { chatId } = useParams();
+    const { token, isLoggedIn } = useAuth();
+    const api = useApi(token);
 
     const navigate = useNavigate();
     const { data, isloading } = useQuery({
-        queryKey: ["messages", chatId],
+        queryKey: ["messages", chatId, token],
+        enabled: isLoggedIn,
         queryFn: () => (
             chatId ?
-                fetch(`http://127.0.0.1:8000/chats/${chatId}/messages`)
+                api.get(`/chats/${chatId}/messages`)
                     .then((response) => {
                         if (!response.ok) {
                             response.status === 404 ?
