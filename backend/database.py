@@ -195,7 +195,8 @@ def get_chat_messages(session: Session, chat_id: int, user_id: int) -> list[Mess
 
     return chat.messages
 
-def get_chat_message_by_id(session: Session, chat_id: int, message_id: int) -> MessageInDB:
+def get_chat_message_by_id(session: Session, chat_id: int, 
+                           message_id: int, user_id: int) -> MessageInDB:
     """
     Retrieve a chats message by id from the database.
 
@@ -203,7 +204,7 @@ def get_chat_message_by_id(session: Session, chat_id: int, message_id: int) -> M
     :param message_id: id of the message
     :return: the chat message
     """
-    messages = get_chat_messages(session, chat_id)
+    messages = get_chat_messages(session, chat_id, user_id)
     for message in messages:
         if message.id == message_id:
             return message
@@ -221,7 +222,7 @@ def update_message(session: Session, chat_id: int,
     :param user_id: the id of the current user
     :return: the updated message
     """
-    message = get_chat_message_by_id(session, chat_id, message_id)
+    message = get_chat_message_by_id(session, chat_id, message_id, user_id)
     if message.user.id != user_id:
         raise NoPermissionException(action="edit", entity="message")
 
@@ -243,7 +244,7 @@ def delete_message(session: Session, chat_id: int,
     :param message_id: id of the message
     :param user_id: the id of the current user
     """
-    message = get_chat_message_by_id(session, chat_id, message_id)
+    message = get_chat_message_by_id(session, chat_id, message_id, user_id)
     if message.user.id != user_id:
         raise NoPermissionException(action="delete", entity="message")
     session.delete(message)

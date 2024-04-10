@@ -1,3 +1,5 @@
+import { useQuery } from "react-query";
+
 const api = (token) => {
     const baseUrl = "http://127.0.0.1:8000";
 
@@ -24,6 +26,16 @@ const api = (token) => {
         )
     );
 
+    const remove = (url, body) => (
+        fetch(
+            baseUrl + url,
+            {
+                method: "DELETE",
+                headers,
+            },
+        )
+    );
+
     const postForm = (url, body) => (
         fetch(
             baseUrl + url,
@@ -38,7 +50,7 @@ const api = (token) => {
         )
     );
 
-    return { get, post, postForm };
+    return { get, post, postForm, remove };
 };
 
 export default api;
