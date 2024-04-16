@@ -246,7 +246,7 @@ def delete_message(session: Session, chat_id: int,
     """
     message = get_chat_message_by_id(session, chat_id, message_id, user_id)
     if message.user.id != user_id:
-        raise NoPermissionException(action="delete", entity="message")
+        raise NoPermissionException(action="edit", entity="message")
     session.delete(message)
     session.commit()
 
